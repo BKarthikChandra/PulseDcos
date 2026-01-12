@@ -1,6 +1,6 @@
-import { Processor, Process } from '@nestjs/bull';
+import { Processor, Process, InjectQueue } from '@nestjs/bull';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { Job } from 'bull';
+import type { Job, Queue } from 'bull';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -19,9 +19,11 @@ export class InjectionProcessor {
 
     @InjectRepository(DocumentPages)
     private readonly documentPagesRepository: Repository<DocumentPages>,
+
+    @InjectQueue('injectionQueue') private readonly injectionQueue: Queue,
   ) {}
 
-  @Process('injectionJob')
+  @Process('extractJob')
   async handle(job: Job<{ documentId: number }>) {
     const { documentId } = job.data;
 
@@ -78,7 +80,12 @@ export class InjectionProcessor {
 
       document.status = 'EXTRACTED';
       await this.documentRepository.save(document);
-
+  
+      await this.injectionQueue.add('processJob', { documentId: document.id } ,  {
+            attempts: 5,
+            backoff: {type: 'exponential', delay: 5000},
+            removeOnComplete: true,
+      });
       console.log(
         `[INGESTION] Document ${documentId} extracted (${pages.length} pages)`,
       );

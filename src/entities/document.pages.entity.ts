@@ -14,6 +14,9 @@ export class DocumentPages {
 
     @Column({name : 'raw_text', type : 'text'})
     rawText: string;
+    
+    @Column({ type: 'text', nullable: true })
+   cleanedText: string;
 
     @Column({
         name: 'created_on',

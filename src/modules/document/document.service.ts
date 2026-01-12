@@ -50,7 +50,7 @@ export class DocumentService {
 
     const savedDocument = await this.documentRepository.save(document);
 
-    await this.injectionQueue.add('injectionJob', { documentId: savedDocument.id } ,  {
+    await this.injectionQueue.add('extractJob', { documentId: savedDocument.id } ,  {
       attempts: 5,
       backoff: {type: 'exponential', delay: 5000},
       removeOnComplete: true,
