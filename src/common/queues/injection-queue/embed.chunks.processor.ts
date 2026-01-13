@@ -5,7 +5,10 @@ import { Repository } from 'typeorm';
 import { GoogleGenAI } from '@google/genai';
 
 import { Document } from 'src/entities/document.entity';
-import { DocumentChunk, ChunkStatus } from 'src/entities/document.chunks.entity';
+import {
+  DocumentChunk,
+  ChunkStatus,
+} from 'src/entities/document.chunks.entity';
 
 @Processor('injectionQueue')
 export class EmbedChunksProcessor {
@@ -22,15 +25,14 @@ export class EmbedChunksProcessor {
   @Process('embedJob')
   async handle(job: Job<{ documentId: number }>) {
     const { documentId } = job.data;
-   console.log(`[EMBED] Starting embedding for document ${documentId}`);
+    console.log(`[EMBED] Starting embedding for document ${documentId}`);
     console.log('Document for it , testing purpose');
     // 1. Lock the document so only one worker can embed it
     const document = await this.documents.findOne({
       where: { id: documentId, status: 'CHUNKED' },
-     
     });
     console.log('Document for it , testing purpose');
-     console.log(document);
+    console.log(document);
     if (!document) return;
 
     // 2. Load all pending chunks
@@ -47,7 +49,7 @@ export class EmbedChunksProcessor {
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
       const batch = chunks.slice(i, i + BATCH_SIZE);
 
-      const contents = batch.map(c => ({
+      const contents = batch.map((c) => ({
         role: 'user',
         parts: [{ text: c.chunkText }],
       }));
@@ -68,25 +70,24 @@ export class EmbedChunksProcessor {
       console.log(`[EMBED] Received ${embeddings.length} embeddings`);
       // 5. Atomic write for this batch
       try {
-  await this.chunks.manager.transaction(async manager => {
-    for (let j = 0; j < batch.length; j++) {
-      await manager.update(
-        DocumentChunk,
-        { id: batch[j].id },
-        {
-          embedding: embeddings[j].values,
-          status: ChunkStatus.EMBEDDED,
-        },
-      );
+        await this.chunks.manager.transaction(async (manager) => {
+          for (let j = 0; j < batch.length; j++) {
+            await manager.update(
+              DocumentChunk,
+              { id: batch[j].id },
+              {
+                embedding: embeddings[j].values,
+                status: ChunkStatus.EMBEDDED,
+              },
+            );
+          }
+        });
+      } catch (err) {
+        console.error('EMBED TRANSACTION FAILED:', err);
+        throw err;
+      }
     }
-  });
-} catch (err) {
-  console.error('🔥 EMBED TRANSACTION FAILED:', err);
-  throw err;
-}
 
-    }
-   
     console.log(`[EMBED] Completed embedding for document ${documentId}`);
     // 6. Mark document as embedded if nothing remains
     const remaining = await this.chunks.count({

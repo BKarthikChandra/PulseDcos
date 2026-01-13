@@ -10,7 +10,6 @@ export enum ChunkStatus {
 @Index('idx_chunks_document', ['documentId'])
 @Index('idx_chunks_doc_chunk', ['documentId', 'chunkIndex'])
 export class DocumentChunk {
-
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -27,7 +26,7 @@ export class DocumentChunk {
   chunkIndex: number;
 
   @Column({ type: 'jsonb', nullable: true })
-  sectionPath: string[]; 
+  sectionPath: string[];
   // ["Authentication", "JWT Tokens"]
 
   @Column({ name: 'section_title', type: 'text', nullable: true })
@@ -37,7 +36,7 @@ export class DocumentChunk {
   chunkText: string;
 
   // Critical for RAG pipeline control
-  @Column({ name: 'token_count', type: 'int' , nullable : true })
+  @Column({ name: 'token_count', type: 'int', nullable: true })
   tokenCount: number;
 
   /**

@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 import { InjectQueue } from '@nestjs/bull';
-import type  { Queue } from 'bull';
+import type { Queue } from 'bull';
 
 @Injectable()
 export class DocumentService {
@@ -27,20 +27,15 @@ export class DocumentService {
       throw new InternalServerErrorException('Invalid file');
     }
 
-   
     const uploadDir = path.join(process.cwd(), 'uploads');
 
-  
     await fs.promises.mkdir(uploadDir, { recursive: true });
 
-   
     const safeName = `${randomUUID()}-${file.originalName}`;
     const filePath = path.join(uploadDir, safeName);
 
-   
     await fs.promises.writeFile(filePath, file.buffer);
 
-   
     const document = new Document();
     document.name = file.originalName;
     document.path = `/uploads/${safeName}`;
@@ -50,14 +45,19 @@ export class DocumentService {
 
     const savedDocument = await this.documentRepository.save(document);
 
-    await this.injectionQueue.add('extractJob', { documentId: savedDocument.id } ,  {
-      attempts: 5,
-      backoff: {type: 'exponential', delay: 5000},
-      removeOnComplete: true,
-    });
+    await this.injectionQueue.add(
+      'extractJob',
+      { documentId: savedDocument.id },
+      {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+      },
+    );
 
-    return { message : 'File uploaded successfully', documentId: savedDocument.id};
+    return {
+      message: 'File uploaded successfully',
+      documentId: savedDocument.id,
+    };
   }
-  
-
 }

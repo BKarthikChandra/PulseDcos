@@ -5,7 +5,8 @@ const baseRedis = (config: ConfigService) => {
   const port = Number(config.get<string>('REDIS_PORT'));
 
   if (!host) throw new Error('REDIS_HOST missing');
-  if (!Number.isInteger(port) || port <= 0) throw new Error('REDIS_PORT invalid');
+  if (!Number.isInteger(port) || port <= 0)
+    throw new Error('REDIS_PORT invalid');
 
   return {
     host,

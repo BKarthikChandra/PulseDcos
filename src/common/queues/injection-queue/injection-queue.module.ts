@@ -13,7 +13,7 @@ import { EmbedChunksProcessor } from './embed.chunks.processor';
     TypeOrmModule.forFeature([Document, DocumentPages, DocumentChunk]),
     BullModule.registerQueue({ name: 'injectionQueue' }),
   ],
-  providers: [InjectionProcessor , ProcessProcessor,  EmbedChunksProcessor],
+  providers: [InjectionProcessor, ProcessProcessor, EmbedChunksProcessor],
   exports: [BullModule],
 })
 export class InjectionQueueModule {}
