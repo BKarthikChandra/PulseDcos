@@ -44,7 +44,7 @@ export class DocumentChunk {
    * pgvector column
    * Must be created as: embedding vector(1536)
    */
-  @Column({ name: 'embedding', type: 'vector', length: 1536, nullable: true })
+  @Column({ name: 'embedding', type: 'vector', length: 3072, nullable: true })
   embedding: number[];
 
   @Column({ name: 'status', type: 'varchar', default: ChunkStatus.PENDING })
