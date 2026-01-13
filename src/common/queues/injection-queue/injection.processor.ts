@@ -57,7 +57,7 @@ export class InjectionProcessor {
 
       // const parsed = await (pdfParse as any)(pdfBuffer);
       const parsed = await pdf(absolutePath);
-      console.log(parsed);
+     
       const pages = parsed.text
         .split('\f')
         .map((p) => p.trim())

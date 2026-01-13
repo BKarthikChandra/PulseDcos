@@ -1,6 +1,6 @@
-import { Processor, Process } from '@nestjs/bull';
+import { Processor, Process , InjectQueue  } from '@nestjs/bull';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { Job } from 'bull';
+import type { Job ,  Queue } from 'bull';
 import { Repository } from 'typeorm';
 
 import { Document } from 'src/entities/document.entity';
@@ -137,6 +137,8 @@ export class ProcessProcessor {
 
     @InjectRepository(DocumentChunk)
     private readonly chunks: Repository<DocumentChunk>,
+
+     @InjectQueue('injectionQueue') private readonly injectionQueue: Queue,
   ) {}
 
   @Process('processJob')
@@ -180,6 +182,12 @@ export class ProcessProcessor {
     await this.chunks.save(entities);
 
     await this.documents.update(documentId, { status: 'CHUNKED' });
+    
+      await this.injectionQueue.add('embedJob', { documentId: document.id } ,  {
+                attempts: 1,
+                backoff: {type: 'exponential', delay: 5000},
+                removeOnComplete: true,
+          });
 
     console.log(
       `[PROCESS] Document ${documentId} chunked into ${chunkData.length} chunks`,
