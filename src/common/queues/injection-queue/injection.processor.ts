@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 // import * as pdfParse from 'pdf-parse';
 // import pdfParse = require('pdf-parse');
-import pdf from "pdf-parse-debugging-disabled";
+import pdf from 'pdf-parse-debugging-disabled';
 
 import { Document } from 'src/entities/document.entity';
 import { DocumentPages } from 'src/entities/document.pages.entity';
@@ -57,7 +57,7 @@ export class InjectionProcessor {
 
       // const parsed = await (pdfParse as any)(pdfBuffer);
       const parsed = await pdf(absolutePath);
-     
+
       const pages = parsed.text
         .split('\f')
         .map((p) => p.trim())
@@ -80,12 +80,16 @@ export class InjectionProcessor {
 
       document.status = 'EXTRACTED';
       await this.documentRepository.save(document);
-  
-      await this.injectionQueue.add('processJob', { documentId: document.id } ,  {
-            attempts: 5,
-            backoff: {type: 'exponential', delay: 5000},
-            removeOnComplete: true,
-      });
+
+      await this.injectionQueue.add(
+        'processJob',
+        { documentId: document.id },
+        {
+          attempts: 5,
+          backoff: { type: 'exponential', delay: 5000 },
+          removeOnComplete: true,
+        },
+      );
       console.log(
         `[INGESTION] Document ${documentId} extracted (${pages.length} pages)`,
       );

@@ -1,11 +1,14 @@
-import { Processor, Process , InjectQueue  } from '@nestjs/bull';
+import { Processor, Process, InjectQueue } from '@nestjs/bull';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { Job ,  Queue } from 'bull';
+import type { Job, Queue } from 'bull';
 import { Repository } from 'typeorm';
 
 import { Document } from 'src/entities/document.entity';
 import { DocumentPages } from 'src/entities/document.pages.entity';
-import { DocumentChunk, ChunkStatus } from 'src/entities/document.chunks.entity';
+import {
+  DocumentChunk,
+  ChunkStatus,
+} from 'src/entities/document.chunks.entity';
 
 /* ---------------------------------- */
 /* TEXT CLEANING ENGINE               */
@@ -81,7 +84,7 @@ class DocumentChunker {
     for (const page of pages) {
       const paragraphs = page.cleanedText
         .split('\n\n')
-        .map(p => p.trim())
+        .map((p) => p.trim())
         .filter(Boolean);
 
       for (const paragraph of paragraphs) {
@@ -138,7 +141,7 @@ export class ProcessProcessor {
     @InjectRepository(DocumentChunk)
     private readonly chunks: Repository<DocumentChunk>,
 
-     @InjectQueue('injectionQueue') private readonly injectionQueue: Queue,
+    @InjectQueue('injectionQueue') private readonly injectionQueue: Queue,
   ) {}
 
   @Process('processJob')
@@ -175,19 +178,23 @@ export class ProcessProcessor {
     const chunker = new DocumentChunker();
     const chunkData = chunker.build(pages);
 
-    const entities = chunkData.map(data =>
+    const entities = chunkData.map((data) =>
       this.chunks.create({ documentId, ...data }),
     );
 
     await this.chunks.save(entities);
 
     await this.documents.update(documentId, { status: 'CHUNKED' });
-    
-      await this.injectionQueue.add('embedJob', { documentId: document.id } ,  {
-                attempts: 1,
-                backoff: {type: 'exponential', delay: 5000},
-                removeOnComplete: true,
-          });
+
+    await this.injectionQueue.add(
+      'embedJob',
+      { documentId: document.id },
+      {
+        attempts: 1,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+      },
+    );
 
     console.log(
       `[PROCESS] Document ${documentId} chunked into ${chunkData.length} chunks`,
