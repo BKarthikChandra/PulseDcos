@@ -10,6 +10,7 @@ import { RedisModule } from './common/redis/redis.module';
 import { DocumentModule } from './modules/document/document.module';
 import { AuthModule } from './auth/auth.module';
 import { InjectionQueueModule } from './common/queues/injection-queue/injection-queue.module';
+import { RetrievalModule } from './modules/retrieval/retrieval.module';
 
 import { getDatabaseConfig } from './config/database.config';
 import { createBullRedisOptions } from './config/redis.config';
@@ -39,6 +40,7 @@ import Redis from 'ioredis';
     DocumentModule,
     AuthModule,
     InjectionQueueModule,
+    RetrievalModule,
   ],
   controllers: [AppController],
   providers: [AppService],
