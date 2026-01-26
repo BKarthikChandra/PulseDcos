@@ -4,6 +4,7 @@ import type { Job, Queue } from 'bull';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createHash } from 'crypto';
 // import * as pdfParse from 'pdf-parse';
 // import pdfParse = require('pdf-parse');
 import pdf from 'pdf-parse-debugging-disabled';
@@ -22,6 +23,10 @@ export class InjectionProcessor {
 
     @InjectQueue('injectionQueue') private readonly injectionQueue: Queue,
   ) {}
+
+  private hashText(rawText: string): string {
+    return createHash('sha256').update(rawText, 'utf8').digest('hex');
+  }
 
   @Process('extractJob')
   async handle(job: Job<{ documentId: number }>) {
@@ -67,16 +72,25 @@ export class InjectionProcessor {
         throw new Error('No text extracted from PDF');
       }
 
-      // 🚀 Batch insert (not your original slow loop)
-      const pageEntities = pages.map((text, i) =>
-        this.documentPagesRepository.create({
-          documentId: document.id,
-          pageNumber: i + 1,
-          rawText: text,
-        }),
-      );
+      const BATCH_SIZE = 100;
 
-      await this.documentPagesRepository.save(pageEntities);
+      for (let i = 0; i < pages.length; i += BATCH_SIZE) {
+        const batch = pages.slice(i, i + BATCH_SIZE);
+
+        const pageEntities = batch.map((text, index) =>
+          this.documentPagesRepository.create({
+            documentId: document.id,
+            pageNumber: i + index + 1,
+            rawText: text,
+            rawHash: this.hashText(text),
+          }),
+        );
+
+        await this.documentPagesRepository.upsert(pageEntities, [
+          'documentId',
+          'pageNumber',
+        ]);
+      }
 
       document.status = 'EXTRACTED';
       await this.documentRepository.save(document);

@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity('document_pages')
+@Unique(['documentId', 'pageNumber'])
 export class DocumentPages {
   @PrimaryGeneratedColumn({ name: 'document_page_id' })
   documentPageId: number;
@@ -14,8 +15,14 @@ export class DocumentPages {
   @Column({ name: 'raw_text', type: 'text' })
   rawText: string;
 
+  @Column({ name: 'raw_hash', type: 'text', nullable: true })
+  rawHash: string;
+
   @Column({ type: 'text', nullable: true })
   cleanedText: string;
+
+  @Column({ name: 'clean_hash', type: 'text', nullable: true })
+  cleanHash: string;
 
   @Column({
     name: 'created_on',
