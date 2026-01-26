@@ -9,20 +9,23 @@ import {
   DocumentChunk,
   ChunkStatus,
 } from 'src/entities/document.chunks.entity';
+import { createHash } from 'crypto';
 
 /* ---------------------------------- */
 /* TEXT CLEANING ENGINE               */
 /* ---------------------------------- */
 
+
+
 class TextCleaner {
   clean(raw: string): string {
     let text = raw;
 
-    text = text.normalize('NFKC');
-    text = text.replace(/\r\n/g, '\n');
-    text = text.replace(/[^\S\r\n]+/g, ' ');
-    text = this.mergeWrappedLines(text);
-    text = text.replace(/\n{3,}/g, '\n\n').trim();
+    text = text.normalize('NFKC'); // Normalize Unicode to ensure visually identical characters are treated the same
+    text = text.replace(/\r\n/g, '\n'); // Convert Windows line endings to Unix-style
+    text = text.replace(/[^\S\r\n]+/g, ' '); // Collapse horizontal whitespace while preserving newlines
+    text = this.mergeWrappedLines(text); // Join lines broken by extraction wrapping (lossy, heuristic-based)
+    text = text.replace(/\n{3,}/g, '\n\n').trim(); // Limit excessive blank lines and trim edges
 
     return text;
   }
@@ -61,10 +64,31 @@ class TokenEstimator {
 /* DOCUMENT CHUNKER                   */
 /* ---------------------------------- */
 
+
 class DocumentChunker {
   private readonly MAX_TOKENS = 500;
 
   private readonly estimator = new TokenEstimator();
+  
+  private buildChunkIdentity(input: {
+  chunkText: string;
+  pageStart: number;
+  pageEnd: number;
+  chunkIndex: number;
+}) {
+  return [
+    input.pageStart,
+    input.pageEnd,
+    input.chunkIndex,
+    input.chunkText,
+  ].join('|');
+}
+
+private hashChunk(identity: string): string {
+  return createHash('sha256')
+    .update(identity, 'utf8')
+    .digest('hex');
+}
 
   build(pages: DocumentPages[]) {
     const chunks: Array<{
@@ -73,6 +97,7 @@ class DocumentChunker {
       pageEnd: number;
       chunkIndex: number;
       tokenCount: number;
+      chunkHash: string;
       status: ChunkStatus;
     }> = [];
 
@@ -91,6 +116,12 @@ class DocumentChunker {
         const tokens = this.estimator.estimate(paragraph);
 
         if (bufferTokens + tokens > this.MAX_TOKENS && buffer) {
+           const identity = this.buildChunkIdentity({
+            chunkText: buffer.trim(),
+            pageStart: startPage,
+            pageEnd: page.pageNumber,
+            chunkIndex: index,
+          });
           chunks.push({
             chunkText: buffer.trim(),
             pageStart: startPage,
@@ -98,6 +129,7 @@ class DocumentChunker {
             chunkIndex: index++,
             tokenCount: bufferTokens,
             status: ChunkStatus.PENDING,
+            chunkHash: this.hashChunk(identity),
           });
 
           buffer = '';
@@ -111,6 +143,12 @@ class DocumentChunker {
     }
 
     if (buffer) {
+      const identity = this.buildChunkIdentity({
+        chunkText: buffer.trim(),
+        pageStart: startPage,
+        pageEnd: pages[pages.length - 1].pageNumber,
+        chunkIndex: index,
+      });
       chunks.push({
         chunkText: buffer.trim(),
         pageStart: startPage,
@@ -118,6 +156,7 @@ class DocumentChunker {
         chunkIndex: index++,
         tokenCount: bufferTokens,
         status: ChunkStatus.PENDING,
+        chunkHash: this.hashChunk(identity),
       });
     }
 
@@ -144,6 +183,11 @@ export class ProcessProcessor {
     @InjectQueue('injectionQueue') private readonly injectionQueue: Queue,
   ) {}
 
+
+   private hashText(rawText: string): string {
+      return createHash('sha256').update(rawText, 'utf8').digest('hex');
+    }
+    
   @Process('processJob')
   async handle(job: Job<{ documentId: number }>) {
     const { documentId } = job.data;
@@ -167,11 +211,19 @@ export class ProcessProcessor {
 
     // Clean
     const cleaner = new TextCleaner();
-    for (const page of pages) {
-      page.cleanedText = cleaner.clean(page.rawText);
-    }
+const BATCH_SIZE = 100;
 
-    await this.pages.save(pages);
+for (let i = 0; i < pages.length; i += BATCH_SIZE) {
+  const batch = pages.slice(i, i + BATCH_SIZE);
+
+  for (const page of batch) {
+    page.cleanedText = cleaner.clean(page.rawText);
+    page.cleanHash = this.hashText(page.cleanedText);
+  }
+
+  await this.pages.save(batch);
+}
+
     await this.documents.update(documentId, { status: 'CLEANED' });
 
     // Chunk
@@ -182,7 +234,7 @@ export class ProcessProcessor {
       this.chunks.create({ documentId, ...data }),
     );
 
-    await this.chunks.save(entities);
+    await this.chunks.upsert(entities,{ conflictPaths: ['documentId', 'chunkHash'] });
 
     await this.documents.update(documentId, { status: 'CHUNKED' });
 

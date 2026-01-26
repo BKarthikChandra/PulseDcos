@@ -25,14 +25,12 @@ export class EmbedChunksProcessor {
   @Process('embedJob')
   async handle(job: Job<{ documentId: number }>) {
     const { documentId } = job.data;
-    console.log(`[EMBED] Starting embedding for document ${documentId}`);
-    console.log('Document for it , testing purpose');
+   
     // 1. Lock the document so only one worker can embed it
     const document = await this.documents.findOne({
       where: { id: documentId, status: 'CHUNKED' },
     });
-    console.log('Document for it , testing purpose');
-    console.log(document);
+ 
     if (!document) return;
 
     // 2. Load all pending chunks
@@ -58,10 +56,10 @@ export class EmbedChunksProcessor {
         model: 'gemini-embedding-001',
         contents,
       });
-      console.log(response);
+    
       // 4. Validate response before touching the DB
       const embeddings = response.embeddings;
-      console.log(embeddings);
+      
       if (!embeddings || embeddings.length !== batch.length) {
         throw new Error(
           `Invalid embedding response: expected ${batch.length}, got ${embeddings?.length ?? 0}`,
@@ -78,6 +76,7 @@ export class EmbedChunksProcessor {
               {
                 embedding: embeddings[j].values,
                 status: ChunkStatus.EMBEDDED,
+                embeddingModel: 'gemini-embedding-001',
               },
             );
           }
