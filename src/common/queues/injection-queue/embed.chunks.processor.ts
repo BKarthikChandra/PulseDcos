@@ -4,7 +4,7 @@ import type { Job } from 'bull';
 import { Repository } from 'typeorm';
 import { GoogleGenAI } from '@google/genai';
 import { ChunkEmbeddings } from 'src/entities/chunk.embeddings.entity';
-import { ChunkEmbeddingStatus } from 'src/entities/chunk.embeddings.entity';
+
 import { Document } from 'src/entities/document.entity';
 import {
   DocumentChunk,
@@ -109,7 +109,9 @@ async handle(job: Job<{ documentId: number }>) {
     await this.documents.update(documentId, { status: 'EMBEDDED' });
   }
 
-  console.log("Done");
+   console.log(
+        `[PROCESS] Document ${documentId} embedded`,
+      );
 }
  
 }

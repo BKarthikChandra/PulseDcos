@@ -1,4 +1,4 @@
-PulseDocs — Current Architecture (v0.5)
+PulseDocs —  Architecture (v0.5)
 
 1. System Purpose
 
@@ -150,13 +150,12 @@ Identity
 
 (chunk_id, model)
 
-Fields
+Some Important Fields
 
 chunk_id (FK)
 model
 vector
-status (PENDING | EMBEDDED | STALE | FAILED)
-created_at
+
 
 Hard Constraint
 

@@ -44,15 +44,6 @@ export class DocumentChunk {
   @Column({ name: 'token_count', type: 'int', nullable: true })
   tokenCount: number;
 
-  /**
-   * pgvector column
-   * Must be created as: embedding vector(1536)
-   */
-  @Column({ name: 'embedding', type: 'vector', length: 3072, nullable: true })
-  embedding: number[];
-  
-  @Column({ name: 'embedding_model', type: 'varchar', nullable: true })
-  embeddingModel: string;
   
   @Column({ name: 'status', type: 'varchar', default: ChunkStatus.PENDING })
   status: ChunkStatus;

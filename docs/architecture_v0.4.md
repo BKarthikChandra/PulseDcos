@@ -1,6 +1,6 @@
 
 
-PulseDocs — Current Architecture (v0.4)
+PulseDocs — Architecture (v0.4)
 
 1. System Purpose
 

@@ -44,17 +44,21 @@ export class RetrievalService {
     // 2️⃣ Similarity search in Postgres using pgvector
     const chunks = await this.documentChunkRepository.query(
       `
-      SELECT chunk_text,
-  section_title,
-  chunk_index,
-             1 - (embedding <=> $1) AS similarity
-      FROM document_chunks
-      WHERE document_id = $2
-        AND status = 'EMBEDDED'
-      ORDER BY embedding <=> $1
-      LIMIT 5;
+     SELECT
+  dc.chunk_text,
+  dc.section_title,
+  dc.chunk_index,
+  1 - (dp.embedding <=> $1) AS similarity
+FROM document_chunks dc
+INNER JOIN chunk_embeddings dp
+  ON dp.chunk_id = dc.id
+WHERE dc.document_id = $2
+  AND dc.status = 'EMBEDDED'
+  AND dp.model_name = $3
+ORDER BY dp.embedding <=> $1
+LIMIT 5;
       `,
-      [queryVector, documentId],
+      [queryVector, documentId, 'gemini-embedding-001'],
     );
 
     const prompt = await this.generatePrompt(chunks, query);
