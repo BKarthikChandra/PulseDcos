@@ -1,4 +1,4 @@
-PulseDocs — Current Architecture (v0.3)
+PulseDocs — Architecture (v0.3)
 1. System Purpose
 PulseDocs is a backend system that ingests PDF documents, processes them asynchronously through a staged pipeline, and enables vector-based retrieval of document content with explicit source attribution.
 The system is designed to decouple user-facing latency from heavy processing, ensure pipeline safety under concurrent uploads, and maintain clear state transitions across ingestion stages.

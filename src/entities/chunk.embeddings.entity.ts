@@ -7,15 +7,10 @@ import {
   Index,
 } from 'typeorm';
 
-export enum ChunkEmbeddingStatus {
-  PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-}
+
 
 @Entity('chunk_embeddings')
 @Index(['chunkId'])
-@Index(['status'])
 @Index(['chunkId', 'modelName'], { unique: true })
 export class ChunkEmbeddings {
   @PrimaryGeneratedColumn({ name: 'chunk_embedding_id' })
@@ -35,12 +30,7 @@ export class ChunkEmbeddings {
   @Column({ name: 'embedding', type: 'vector', length: 3072 })
   embedding: number[];
 
-  @Column({
-    type: 'enum',
-    enum: ChunkEmbeddingStatus,
-    default: ChunkEmbeddingStatus.PENDING,
-  })
-  status: ChunkEmbeddingStatus;
+  
 
   @CreateDateColumn({
     name: 'created_on',
