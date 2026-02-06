@@ -1,4 +1,4 @@
-PulseDocs — Current Architecture (v0.5)
+PulseDocs —  Architecture (v0.5)
 
 1. System Purpose
 
@@ -35,11 +35,8 @@ UPLOADED
 → EXTRACTED
 → CLEANED
 → CHUNKED
+→ EMBEDDED
 
-Important change in v0.5
-There is no "EMBEDDED" document state.
-
-Once a document reaches CHUNKED, its semantic content is finalized.
 All vector representations are treated as independent, derived artifacts.
 
 4. Ingestion Pipeline (Retry-Safe & Deterministic)
@@ -150,13 +147,12 @@ Identity
 
 (chunk_id, model)
 
-Fields
+Some Important Fields
 
 chunk_id (FK)
 model
 vector
-status (PENDING | EMBEDDED | STALE | FAILED)
-created_at
+
 
 Hard Constraint
 
