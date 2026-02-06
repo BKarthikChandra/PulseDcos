@@ -35,11 +35,8 @@ UPLOADED
 → EXTRACTED
 → CLEANED
 → CHUNKED
+→ EMBEDDED
 
-Important change in v0.5
-There is no "EMBEDDED" document state.
-
-Once a document reaches CHUNKED, its semantic content is finalized.
 All vector representations are treated as independent, derived artifacts.
 
 4. Ingestion Pipeline (Retry-Safe & Deterministic)
