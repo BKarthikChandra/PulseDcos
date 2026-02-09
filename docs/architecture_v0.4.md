@@ -1,10 +1,8 @@
-
-
-PulseDocs — Architecture (v0.4)
+DIRS (Document Ingestion & Retrieval System) — Architecture (v0.4)
 
 1. System Purpose
 
-PulseDocs is a backend system that ingests PDF documents, processes them asynchronously through a staged pipeline, and enables vector-based retrieval of document content with explicit source attribution.
+DIRS is a backend system that ingests PDF documents, processes them asynchronously through a staged pipeline, and enables vector-based retrieval of document content with explicit source attribution.
 
 The system is designed to:
 
@@ -284,7 +282,7 @@ These are intentionally deferred.
 
 9. Summary
 
-PulseDocs v0.4 is a retry-safe, state-driven knowledge ingestion and retrieval system.
+DIRS v0.4 is a retry-safe, state-driven knowledge ingestion and retrieval system.
 
 Compared to v0.3, v0.4 adds:
 
