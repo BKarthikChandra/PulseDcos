@@ -265,7 +265,7 @@ State clearly that the information is not available in the provided documents.
     return `
 You are a senior technical assistant.
 
-Answer the user's question using **only** the information from the sources below.
+Answer the user's question using only the information from the sources below.
 If the answer is not present in the sources, say:
 "The provided documents do not contain this information."
 

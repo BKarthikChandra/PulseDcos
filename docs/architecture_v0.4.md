@@ -1,10 +1,12 @@
 
 
-PulseDocs — Architecture (v0.4)
+AIRS (Artifact Ingestion & Retrieval System) — Architecture (v0.4)
 
 1. System Purpose
 
-PulseDocs is a backend system that ingests PDF documents, processes them asynchronously through a staged pipeline, and enables vector-based retrieval of document content with explicit source attribution.
+AIRS is a backend system that ingests artifacts, processes them asynchronously through a staged pipeline, and enables explainable, vector-based retrieval with explicit source attribution.
+
+The current implementation focuses on PDF-based documents. However, the system is intentionally designed to be artifact agnostic and can ingest other artifact types such as source code and logs using the same state-driven ingestion and retrieval model without changing core correctness guarantees.
 
 The system is designed to:
 
@@ -284,7 +286,7 @@ These are intentionally deferred.
 
 9. Summary
 
-PulseDocs v0.4 is a retry-safe, state-driven knowledge ingestion and retrieval system.
+AIRS v0.4 is a retry-safe, state-driven knowledge ingestion and retrieval system.
 
 Compared to v0.3, v0.4 adds:
 
