@@ -1,8 +1,10 @@
-DIRS (Document Ingestion & Retrieval System) —  Architecture (v0.5)
+AIRS (Artifact Ingestion & Retrieval System) —  Architecture (v0.5)
 
 1. System Purpose
 
-DIRS is a backend system that ingests PDF documents, processes them asynchronously through a staged pipeline, and enables explainable, vector-based retrieval of document content with explicit source attribution.
+AIRS is a backend system that ingests artifacts, processes them asynchronously through a staged pipeline, and enables explainable, vector-based retrieval with explicit source attribution.
+
+The current implementation focuses on PDF-based documents. However, the system is intentionally designed to be artifact-agnostic and can ingest other artifact types—such as source code and logs—using the same state-driven ingestion and retrieval model without changing core correctness guarantees.
 
 The system is designed to:
 
@@ -12,6 +14,7 @@ separate semantic truth from derived representations, and
 allow embedding strategies to evolve independently of content.
 
 LLMs are used only as a response layer and never participate in ingestion, storage, or retrieval decisions.
+
 
 2. High-Level Architecture Overview
 
@@ -250,7 +253,7 @@ These are deferred to later versions.
 
 9. Summary
 
-DIRS v0.5 introduces a critical architectural correction:
+AIRS v0.5 introduces a critical architectural correction:
 
 Semantic content is immutable truth
 Vector embeddings are explicitly derived, model-scoped data
