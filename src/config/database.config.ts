@@ -9,5 +9,5 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => ({
   database: process.env.DB_DATABASE || 'database',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   synchronize: false,
-   logging: false,
+  logging: false,
 });

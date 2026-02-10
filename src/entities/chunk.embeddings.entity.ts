@@ -7,8 +7,6 @@ import {
   Index,
 } from 'typeorm';
 
-
-
 @Entity('chunk_embeddings')
 @Index(['chunkId'])
 @Index(['chunkId', 'modelName'], { unique: true })
@@ -26,11 +24,8 @@ export class ChunkEmbeddings {
   })
   modelName: string;
 
- 
   @Column({ name: 'embedding', type: 'vector', length: 3072 })
   embedding: number[];
-
-  
 
   @CreateDateColumn({
     name: 'created_on',

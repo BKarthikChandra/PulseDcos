@@ -10,7 +10,6 @@ export enum ChunkStatus {
 @Index('idx_chunks_document', ['documentId'])
 @Index('idx_chunks_doc_chunk', ['documentId', 'chunkIndex'])
 @Unique('uq_document_chunk_hash', ['documentId', 'chunkHash'])
-
 export class DocumentChunk {
   @PrimaryGeneratedColumn()
   id: number;
@@ -37,14 +36,13 @@ export class DocumentChunk {
   @Column({ name: 'chunk_text', type: 'text' })
   chunkText: string;
 
-  @Column({ name: 'chunk_hash', type: 'text',nullable : true })
+  @Column({ name: 'chunk_hash', type: 'text', nullable: true })
   chunkHash: string;
 
   // Critical for RAG pipeline control
   @Column({ name: 'token_count', type: 'int', nullable: true })
   tokenCount: number;
 
-  
   @Column({ name: 'status', type: 'varchar', default: ChunkStatus.PENDING })
   status: ChunkStatus;
 
