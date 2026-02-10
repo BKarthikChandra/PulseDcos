@@ -7,8 +7,6 @@ import { Document } from 'src/entities/document.entity';
 import { DocumentChunk } from 'src/entities/document.chunks.entity';
 import { DocumentPages } from 'src/entities/document.pages.entity';
 
-
-
 const SIMILARITY_FLOOR = 0.5;
 
 const MAX_PER_PAGE = 1;
@@ -18,8 +16,6 @@ const MAX_CONTEXT_TOKENS = 1500;
 const PROMPT_OVERHEAD = 300;
 
 const FRESHNESS_WEIGHT = 0.1;
-
-
 
 export type RetrievalTrace = {
   chunkId: number;
@@ -49,16 +45,11 @@ export class RetrievalService {
     private documentPagesRepository: Repository<DocumentPages>,
   ) {}
 
-  
-
   private toPgVector(values: number[]): string {
     return `[${values.join(',')}]`;
   }
 
-  
-
   async retrieveRelevantChunks(query: string, documentId: number) {
-   
     const embeddingResponse = await this.ai.models.embedContent({
       model: 'gemini-embedding-001',
       contents: query,
@@ -75,7 +66,6 @@ export class RetrievalService {
 
     const queryVector = this.toPgVector(values);
 
-    
     const rawChunks = await this.documentChunkRepository.query(
       `
       SELECT
@@ -101,20 +91,12 @@ export class RetrievalService {
       [queryVector, documentId, 'gemini-embedding-001', SIMILARITY_FLOOR],
     );
 
-   
-    const { diverseChunks, traces } =
-      this.applyDiversityWithTrace(rawChunks);
+    const { diverseChunks, traces } = this.applyDiversityWithTrace(rawChunks);
 
-    
     const rankedChunks = this.applyFreshnessBias(diverseChunks, traces);
 
- 
-    const finalChunks = this.finalSelectWithTrace(
-      rankedChunks,
-      traces,
-    );
+    const finalChunks = this.finalSelectWithTrace(rankedChunks, traces);
 
-    
     const prompt = await this.generatePrompt(finalChunks, query);
     const answer = await this.generateAnswer(prompt);
 
@@ -123,8 +105,6 @@ export class RetrievalService {
       trace: traces, // return only in debug mode if needed
     };
   }
-
-  
 
   private applyDiversityWithTrace(chunks: any[]) {
     const selected: any[] = [];
@@ -165,31 +145,21 @@ export class RetrievalService {
       if (accepted) {
         selected.push(chunk);
         pageCount.set(pageKey, (pageCount.get(pageKey) ?? 0) + 1);
-        sectionCount.set(
-          sectionKey,
-          (sectionCount.get(sectionKey) ?? 0) + 1,
-        );
+        sectionCount.set(sectionKey, (sectionCount.get(sectionKey) ?? 0) + 1);
       }
     }
 
     return { diverseChunks: selected, traces };
   }
 
-  
-
-  private applyFreshnessBias(
-    chunks: any[],
-    traces: RetrievalTrace[],
-  ) {
+  private applyFreshnessBias(chunks: any[], traces: RetrievalTrace[]) {
     const now = Date.now();
 
     const ranked = chunks.map((chunk) => {
       const ageInDays =
-        (now - new Date(chunk.created_on).getTime()) /
-        (1000 * 60 * 60 * 24);
+        (now - new Date(chunk.created_on).getTime()) / (1000 * 60 * 60 * 24);
 
-      const freshnessPenalty =
-        Math.log(ageInDays + 1) * FRESHNESS_WEIGHT;
+      const freshnessPenalty = Math.log(ageInDays + 1) * FRESHNESS_WEIGHT;
 
       const finalScore = chunk.similarity - freshnessPenalty;
 
@@ -208,12 +178,7 @@ export class RetrievalService {
     return ranked.sort((a, b) => b.finalScore - a.finalScore);
   }
 
-  
-
-  private finalSelectWithTrace(
-    chunks: any[],
-    traces: RetrievalTrace[],
-  ) {
+  private finalSelectWithTrace(chunks: any[], traces: RetrievalTrace[]) {
     let usedTokens = PROMPT_OVERHEAD;
     const final: any[] = [];
 
@@ -233,8 +198,6 @@ export class RetrievalService {
 
     return final;
   }
-
-  
 
   async generatePrompt(
     chunks: { chunk_text: string; section_title?: string }[],
@@ -281,8 +244,6 @@ Provide a clear, precise answer.
 Cite sources using [Source X] notation.
 `;
   }
-
- 
 
   async generateAnswer(prompt: string) {
     const result = await this.ai.models.generateContent({
